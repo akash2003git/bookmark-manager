@@ -1,7 +1,8 @@
 "use client"
 
-import { deleteBookmark } from "../lib/actions";
+import { deleteBookmark, toggleFavourite } from "../lib/actions";
 import { Bookmark } from "../lib/definitions";
+import { startTransition, use, useOptimistic } from "react";
 
 const Card = ({
   id,
@@ -12,6 +13,18 @@ const Card = ({
   createdAt,
   tags
 }: Bookmark) => {
+  const [optimisticFavourite, setOptimisticFavourite] = useOptimistic(
+    isFavourite,
+    (state, nextValue: boolean) => nextValue
+  )
+
+  const handleToggle = () => {
+    startTransition(async () => {
+      setOptimisticFavourite(!optimisticFavourite);
+      await toggleFavourite(id);
+    })
+  }
+
   return (
     <div className="flex flex-col gap-2 border rounded-xl p-2 m-2 w-100 line-clamp-1">
       <h3 className="text-xl font-semibold">{title}</h3>
@@ -34,6 +47,11 @@ const Card = ({
           }}
           className="bg-gray-800 rounded-xl text-sm font-semibold text-red-400 px-3 py-1 cursor-pointer">
           Delete
+        </button>
+        <button
+          onClick={handleToggle}
+          className="bg-gray-800 rounded-xl text-sm font-semibold text-yellow-400 px-3 py-1 cursor-pointer ml-2">
+          {optimisticFavourite ? '❤️ Un-Favourite' : '🤍 Favourite'}
         </button>
       </div>
     </div>

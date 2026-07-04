@@ -53,3 +53,21 @@ export async function deleteBookmark(id: string) {
 
   revalidatePath("/");
 }
+
+export async function toggleFavourite(id: string) {
+  const bookmark = await prisma.bookmark.findUnique({
+    where: { id },
+    select: { isFavourite: true }
+  });
+
+  if (!bookmark) throw new Error("Bookmark not found");
+
+  await prisma.bookmark.update({
+    where: { id },
+    data: {
+      isFavourite: !bookmark.isFavourite
+    }
+  })
+
+  revalidatePath("/");
+}
