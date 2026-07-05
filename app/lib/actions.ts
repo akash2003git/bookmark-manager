@@ -55,19 +55,15 @@ export async function deleteBookmark(id: string) {
 }
 
 export async function toggleFavourite(id: string) {
-  const bookmark = await prisma.bookmark.findUnique({
-    where: { id },
-    select: { isFavourite: true }
-  });
+  const updatedCount = await prisma.$executeRaw`
+    UPDATE "Bookmark"
+    SET "isFavourite" = NOT "isFavourite"
+    WHERE "id" = ${id}
+  `;
 
-  if (!bookmark) throw new Error("Bookmark not found");
-
-  await prisma.bookmark.update({
-    where: { id },
-    data: {
-      isFavourite: !bookmark.isFavourite
-    }
-  })
+  if (updatedCount == 0) {
+    throw new Error("Bookmark not found");
+  }
 
   revalidatePath("/");
 }
